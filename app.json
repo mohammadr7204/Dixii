@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "scheme": "acme",
+    "jsEngine": "hermes",
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "react-native-ble-plx",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ]
+    ],
+    "name": "Deepwork",
+    "slug": "deepwork",
+    "icon": "./assets/images/deepwork.png",
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "6ebadf19-9d8c-46d3-bad6-f1bc251616cb"
+      }
+    },
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "com.niura.deepwork"
+    },
+    "ios": {
+      "bundleIdentifier": "com.niura.deepwork"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "checkAutomatically": "ON_LOAD",
+      "url": "https://u.expo.dev/6ebadf19-9d8c-46d3-bad6-f1bc251616cb"
+    },
+    "owner": "niura"
+  }
+} 
