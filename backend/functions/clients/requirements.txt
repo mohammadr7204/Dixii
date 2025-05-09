@@ -1,0 +1,6 @@
+functions-framework==3.8.2
+flask==2.3.3
+google-cloud-firestore==2.20.2
+firebase-admin==6.8.0
+google-auth==2.40.1
+werkzeug==2.3.7

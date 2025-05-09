@@ -31,7 +31,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <AuthProvider>
-        <Router>
+      <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -70,7 +70,7 @@ function App() {
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Routes>
         </Router>
-      </AuthProvider>
+        </AuthProvider>
     </ThemeProvider>
   );
 }

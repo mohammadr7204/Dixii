@@ -19,86 +19,54 @@ import {
   getDownloadURL,
   deleteObject
 } from 'firebase/storage';
+import axios from 'axios';
+import { getAuth } from 'firebase/auth';
 
-export const uploadDocument = async (file, metadata, userId, clientId) => {
-  try {
-    // Upload file to Firebase Storage
-    const storageRef = ref(storage, `documents/${userId}/${clientId}/${file.name}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-    // Create document record in Firestore
-    const documentsRef = collection(db, 'documents');
-    const newDocument = {
-      ...metadata,
-      userId,
-      clientId,
-      fileName: file.name,
-      fileType: file.type,
-      fileSize: file.size,
-      downloadURL,
-      storagePath: storageRef.fullPath,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      tags: metadata.tags || [],
-      category: metadata.category || 'Uncategorized',
-      sharedWith: [],
-      previewUrl: null
-    };
-    const docRef = await addDoc(documentsRef, newDocument);
-    return { id: docRef.id, ...newDocument };
-  } catch (error) {
-    console.error('Error uploading document:', error);
-    throw error;
-  }
+const getAuthHeader = async () => {
+  const auth = getAuth();
+  const token = await auth.currentUser?.getIdToken();
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 };
 
-export const getDocuments = async (userId, clientId = null, filters = {}) => {
-  try {
-    const documentsRef = collection(db, 'documents');
-    let constraints = [
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
-    ];
-
-    if (clientId) {
-      constraints.push(where('clientId', '==', clientId));
-    }
-
-    if (filters.category) {
-      constraints.push(where('category', '==', filters.category));
-    }
-
-    if (filters.tags && filters.tags.length > 0) {
-      constraints.push(where('tags', 'array-contains-any', filters.tags));
-    }
-
-    if (filters.search) {
-      // Note: This is a simple search. For better search, consider using Algolia or similar
-      const q = query(documentsRef, ...constraints);
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-        .filter(doc =>
-          doc.fileName.toLowerCase().includes(filters.search.toLowerCase()) ||
-          doc.title?.toLowerCase().includes(filters.search.toLowerCase()) ||
-          doc.description?.toLowerCase().includes(filters.search.toLowerCase())
-        );
-    }
-
-    const q = query(documentsRef, ...constraints);
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-  } catch (error) {
-    console.error('Error fetching documents:', error);
-    throw error;
+export const uploadDocument = async (file, clientId) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (clientId) {
+    formData.append('clientId', clientId);
   }
+
+  const config = await getAuthHeader();
+  config.headers['Content-Type'] = 'multipart/form-data';
+
+  const response = await axios.post(`${API_URL}/upload`, formData, config);
+  return response.data;
+};
+
+export const getDocuments = async (filters = {}) => {
+  const config = await getAuthHeader();
+  const response = await axios.get(`${API_URL}/documents`, {
+    ...config,
+    params: filters,
+  });
+  return response.data;
+};
+
+export const getDocument = async (documentId) => {
+  const config = await getAuthHeader();
+  const response = await axios.get(`${API_URL}/documents/${documentId}`, config);
+  return response.data;
+};
+
+export const deleteDocument = async (documentId) => {
+  const config = await getAuthHeader();
+  const response = await axios.delete(`${API_URL}/documents/${documentId}`, config);
+  return response.data;
 };
 
 export const getSharedDocuments = async (userId) => {
@@ -120,25 +88,6 @@ export const getSharedDocuments = async (userId) => {
   }
 };
 
-export const getDocument = async (documentId) => {
-  try {
-    const docRef = doc(db, 'documents', documentId);
-    const docSnap = await getDoc(docRef);
-
-    if (!docSnap.exists()) {
-      throw new Error('Document not found');
-    }
-
-    return {
-      id: docSnap.id,
-      ...docSnap.data()
-    };
-  } catch (error) {
-    console.error('Error fetching document:', error);
-    throw error;
-  }
-};
-
 export const updateDocument = async (documentId, metadata) => {
   try {
     const docRef = doc(db, 'documents', documentId);
@@ -150,23 +99,6 @@ export const updateDocument = async (documentId, metadata) => {
     return { id: documentId, ...updatedData };
   } catch (error) {
     console.error('Error updating document:', error);
-    throw error;
-  }
-};
-
-export const deleteDocument = async (document) => {
-  try {
-    // Delete file from Storage
-    const storageRef = ref(storage, document.storagePath);
-    await deleteObject(storageRef);
-
-    // Delete document record from Firestore
-    const docRef = doc(db, 'documents', document.id);
-    await deleteDoc(docRef);
-
-    return document.id;
-  } catch (error) {
-    console.error('Error deleting document:', error);
     throw error;
   }
 };

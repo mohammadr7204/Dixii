@@ -21,13 +21,13 @@ def verify_auth_token(token):
         return decoded_token
     except auth.RevokedIdTokenError:
         # Token has been revoked
-        return None
+        return {'error': 'Token has been revoked', 'code': 'TOKEN_REVOKED'}
     except auth.InvalidIdTokenError:
         # Token is invalid
-        return None
+        return {'error': 'Invalid token', 'code': 'INVALID_TOKEN'}
     except Exception as e:
         print(f"Unexpected error verifying token: {e}")
-        return None
+        return {'error': 'Authentication failed', 'code': 'AUTH_FAILED'}
 
 def extract_token(request):
     """Extract bearer token from authorization header."""
@@ -43,7 +43,7 @@ def auth_middleware(request: Request):
     # Set CORS headers for preflight requests
     if request.method == 'OPTIONS':
         headers = {
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000'),
             'Access-Control-Allow-Methods': 'GET, POST',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
             'Access-Control-Max-Age': '3600'
@@ -52,7 +52,7 @@ def auth_middleware(request: Request):
 
     # Set CORS headers for the main request
     headers = {
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000')
     }
 
     # Get the token from Authorization header

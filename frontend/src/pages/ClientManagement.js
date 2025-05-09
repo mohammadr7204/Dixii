@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Typography,
@@ -32,18 +32,22 @@ export default function ClientManagement() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadClients();
-  }, [currentUser]);
+  const showSnackbar = useCallback((message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  }, []);
 
-  const loadClients = async () => {
+  const loadClients = useCallback(async () => {
     try {
       const fetchedClients = await getClients(currentUser.uid);
       setClients(fetchedClients);
     } catch (error) {
       showSnackbar('Error loading clients', 'error');
     }
-  };
+  }, [currentUser.uid, showSnackbar]);
+
+  useEffect(() => {
+    loadClients();
+  }, [loadClients]);
 
   const handleAddClient = () => {
     setSelectedClient(null);
@@ -87,10 +91,6 @@ export default function ClientManagement() {
       showSnackbar('Error saving client', 'error');
     }
     setSubmitting(false);
-  };
-
-  const showSnackbar = (message, severity = 'success') => {
-    setSnackbar({ open: true, message, severity });
   };
 
   const handleCloseSnackbar = () => {

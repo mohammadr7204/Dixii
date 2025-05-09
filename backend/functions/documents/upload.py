@@ -2,10 +2,12 @@ import functions_framework
 from flask import Request, jsonify
 from google.cloud import storage
 from google.cloud import firestore
+from google.cloud import pubsub_v1
 import uuid
 import time
 import os
-from datetime import datetime
+import json
+from datetime import datetime, timedelta
 import firebase_admin
 from firebase_admin import auth
 
@@ -17,6 +19,9 @@ except ValueError:
 
 # Initialize Firestore client
 db = firestore.Client()
+
+# Initialize Pub/Sub publisher
+publisher = pubsub_v1.PublisherClient()
 
 def verify_token(token):
     """Verify Firebase ID token."""
@@ -98,7 +103,7 @@ def upload_document(request: Request):
         # Create a signed URL for temporary access
         signed_url = blob.generate_signed_url(
             version="v4",
-            expiration=datetime.timedelta(minutes=15),
+            expiration=timedelta(minutes=15),
             method="GET"
         )
 
@@ -120,8 +125,18 @@ def upload_document(request: Request):
         }
         doc_ref.set(doc_data)
 
-        # Publish a message to trigger document processing (in a later step)
-        # ...
+        # Publish a message to trigger document processing
+        topic_path = publisher.topic_path('dixii-da77b', 'document-processing')
+        message_data = {
+            'document_id': doc_ref.id,
+            'storage_path': unique_filename,
+            'bucket': 'accountantai-documents'
+        }
+
+        publisher.publish(
+            topic_path,
+            data=json.dumps(message_data).encode('utf-8')
+        )
 
         # Return success response with document info
         return (jsonify({
@@ -130,7 +145,8 @@ def upload_document(request: Request):
             'filename': uploaded_file.filename,
             'storage_path': unique_filename,
             'signed_url': signed_url,
-            'client_id': client_id
+            'client_id': client_id,
+            'processing_status': 'pending'  # Indicate processing is queued
         }), 200, headers)
 
     except Exception as e:

@@ -14,7 +14,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
-  const { currentUser, logout } = useAuth();
+  const { logout } = useAuth();
   const [anchorEl, setAnchorEl] = React.useState(null);
 
   const handleMenu = (event) => {
