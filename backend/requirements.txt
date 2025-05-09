@@ -1,0 +1,9 @@
+django==5.2.1
+djangorestframework==3.16.0
+google-cloud-firestore==2.20.2
+google-cloud-storage==3.1.0
+google-cloud-pubsub==2.29.0
+firebase-admin==6.8.0
+google-auth==2.40.1
+django-cors-headers==4.7.0
+functions-framework==3.8.2

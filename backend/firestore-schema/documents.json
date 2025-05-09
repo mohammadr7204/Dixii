@@ -1,0 +1,23 @@
+{
+    "documents": {
+      "document_id": {
+        "filename": "original_filename.pdf",
+        "storage_path": "path/in/cloud/storage.pdf",
+        "client_id": "client_id",
+        "user_id": "uid_of_accountant",
+        "uploaded_at": "timestamp",
+        "processed": false,
+        "processing_status": "pending|processing|completed|failed",
+        "metadata": {
+          "document_type": "invoice|statement|receipt|other",
+          "file_size": 12345,
+          "content_type": "application/pdf"
+        },
+        "processing_results": {
+          "text_content": "extracted text if available",
+          "ai_analysis": {},
+          "completed_at": "timestamp"
+        }
+      }
+    }
+  }

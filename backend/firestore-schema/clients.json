@@ -1,0 +1,13 @@
+{
+    "clients": {
+      "client_id": {
+        "name": "Client Name",
+        "email": "client@example.com",
+        "phone": "123-456-7890",
+        "address": "123 Main St, City, State, ZIP",
+        "created_at": "timestamp",
+        "updated_at": "timestamp",
+        "user_id": "uid_of_accountant_who_created_client"
+      }
+    }
+  }
